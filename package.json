@@ -1,0 +1,22 @@
+{
+  "name": "mike-jones-bot",
+  "version": "1.0.0",
+  "description": "This bot retweets the latest tweet using the \"#mediaarts\" hashtag. It attempts to retweet once per hour.",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshkpeterson/examplebot.git"
+  },
+  "author": "Josh K. Peterson <joshkpete@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joshkpeterson/examplebot/issues"
+  },
+  "homepage": "https://github.com/joshkpeterson/examplebot#readme",
+  "dependencies": {
+    "twit": "^2.1.1"
+  }
+}
