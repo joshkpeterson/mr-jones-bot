@@ -33,7 +33,7 @@ var getMentions = function() {
   T.get('statuses/mentions_timeline', { count: 10, include_rts: 1, since_id: sinceID }, function(err, data, response) {
     if (data.length) {
       for (var i = 0; i < data.length; i++) {
-      	debugger;
+
         var currentTweet = data[i];
         if (!idStrings[currentTweet.id_str] ) {
         	console.log(currentTweet.text);
@@ -44,6 +44,7 @@ var getMentions = function() {
 	          var tweetObj = {};
 	          tweetObj.user = currentTweet.user.screen_name;
 	          tweetObj.text = currentTweet.text;
+	          tweetObj.id = currentTweet.id;
 	          latestMentions.push(tweetObj);
 	        }
         }
@@ -63,13 +64,13 @@ var getMentions = function() {
 var replyToMentions = function(){  
   for(var i = 0; i < latestMentions.length; i++){
     var currentMention = latestMentions[i];
-    //responseTweet is the string we will send to Tter to tweet for us
-    var responseTweet = 'MIKE JONES';
+    //responseTweet is the string we will send to Twitter to tweet for us
+    var responseTweet = 'MIKE JONES ' + '                      @' + currentMention.user;
 
     console.log('attempting to tweet');
-
+    debugger;
     //Twit will now post this responseTweet to Twitter. This function takes a string and a callback
-    T.post('statuses/update', { status: responseTweet }, function(err, data, response) {
+    T.post('statuses/update', { status: responseTweet, in_reply_to_status_id: currentMention.id }, function(err, data, response) {
       console.log(err)
       if (err) {}
     })
