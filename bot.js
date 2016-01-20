@@ -1,27 +1,27 @@
-// Our Twitter library
-var Twit = require('twit');
+// Our Tter library
+var T = require('twit');
 
 // We need to include our configuration file
-var T = new Twit(require('./config.js'));
+var T = new T(require('./config.js'));
 
 var rateLimitCheckCounter = 0,
 		sinceID = 689636929256714240, // from my test account
-		who = '\\bbrooklyn\\b';
+		who = '\\bwho\\b';
 
 
-function checkThrottled() {
-	var responseData;
+function checkThrottled(callback) {
+	responseData = {};
 
 	T.get('application/rate_limit_status', {resources: 'statuses'}, function (err, data, response) {
-		responseData = data.resources.statuses['/statuses/mentions_timeline'].remaining;
+		responseData.mentions = data.resources.statuses['/statuses/mentions_timeline'].remaining;
 		console.log(responseData);
+
+		rateLimitCheckCounter += 1;
+		return callback(responseData);
 	})
 
-	rateLimitCheckCounter += 1;
-	return responseData;
-}
 
-checkThrottled();
+}
 
 //////////////////////////////////////////////
 
@@ -30,13 +30,15 @@ var latestMentions = [];
 var idStrings = {};
 
 var getMentions = function() {  
-  Twit.get('/statuses/mentions_timeline.json', { count: 200, include_rts: 1, : since_id: sinceID }, function(data) {
+  T.get('statuses/mentions_timeline', { count: 10, include_rts: 1, since_id: sinceID }, function(err, data, response) {
     if (data.length) {
       for (var i = 0; i < data.length; i++) {
+      	debugger;
         var currentTweet = data[i];
         if (!idStrings[currentTweet.id_str] ) {
+        	console.log(currentTweet.text);
 
-        	if ((new RegExp(locationString, 'i')).exec(currentTweet.text)) {
+        	if ((new RegExp(who, 'i')).exec(currentTweet.text)) {
 	        	idStrings[currentTweet.id_str] = true;
 
 	          var tweetObj = {};
@@ -61,17 +63,22 @@ var getMentions = function() {
 var replyToMentions = function(){  
   for(var i = 0; i < latestMentions.length; i++){
     var currentMention = latestMentions[i];
-    //responseTweet is the string we will send to Twitter to tweet for us
-    var responseTweet = 'Hello @';
-    responseTweet += currentMention.user;
-    responseTweet += '\nI hope you are having a wonderful day! \n-Your Favorite Node Server';
+    //responseTweet is the string we will send to Tter to tweet for us
+    var responseTweet = 'MIKE JONES';
+
+    console.log('attempting to tweet');
 
     //Twit will now post this responseTweet to Twitter. This function takes a string and a callback
-    Twit.updateStatus(responseTweet, function(){
-      console.log(responseTweet);
-    });
+    T.post('statuses/update', { status: responseTweet }, function(err, data, response) {
+      console.log(err)
+      if (err) {}
+    })
   }
 };
 
-getMentions();
 
+checkThrottled(function(requestsRemaining) {
+	if (requestsRemaining.mentions > 1) {
+		getMentions();
+	}
+})
