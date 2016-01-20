@@ -1,3 +1,14 @@
+#Josh notes
+
+When re-deploying, supply the last tweet the bot replied to to the var sinceID, that way you won't re-reply to tweets you've already replied to.
+
+
+
+
+
+
+
+
 #ExampleBot
 
 This bot retweets the latest tweet using the "#mediaarts" hashtag. It attempts to retweet once per hour.
