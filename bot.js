@@ -1,35 +1,25 @@
-// Our Tter library
 var T = require('twit');
-
-// We need to include our configuration file
 var T = new T(require('./config.js'));
-
 var schedule = require('node-schedule');
 
 var rateLimitCheckCounter = 0,
 		sinceID = 689636929256714240, // from my test account
-		who = '\\bwho\\b';
+		who = '\\bwho\\b',
+		latestMentions = [],
+		idStrings = {};
 
 
-function checkThrottled(callback) {
+var checkThrottled = function (callback) {
 	responseData = {};
 
 	T.get('application/rate_limit_status', {resources: 'statuses'}, function (err, data, response) {
 		responseData.mentions = data.resources.statuses['/statuses/mentions_timeline'].remaining;
-		console.log(responseData);
+		// console.log(responseData);
 
 		rateLimitCheckCounter += 1;
 		return callback(responseData);
 	})
-
-
 }
-
-//////////////////////////////////////////////
-
-//twitter data
-var latestMentions = [];
-var idStrings = {};
 
 var getMentions = function() {  
   T.get('statuses/mentions_timeline', { count: 10, include_rts: 1, since_id: sinceID }, function(err, data, response) {
@@ -53,7 +43,7 @@ var getMentions = function() {
       }
       //response to new mentions
       replyToMentions();
-    } 
+    }
     else {
       console.log(data);
     }
@@ -69,12 +59,13 @@ var replyToMentions = function(){
     //responseTweet is the string we will send to Twitter to tweet for us
     var responseTweet = 'MIKE JONES ' + '                      @' + currentMention.user;
 
-    console.log('attempting to tweet');
-    debugger;
     //Twit will now post this responseTweet to Twitter. This function takes a string and a callback
     T.post('statuses/update', { status: responseTweet, in_reply_to_status_id: currentMention.id }, function(err, data, response) {
-      console.log(err)
-      if (err) {}
+      if (err) {
+      	console.log(err + ' on tweet id: ' + currentMention.id);
+      } else {
+      	console.log('tweeted at ' + currentMention.user + ' / tweet id: ' + currentMention.id);
+      }
     })
   }
 };

@@ -1,13 +1,16 @@
-#Josh notes
+#Mike Jones Bot
 
 When re-deploying, supply the last tweet the bot replied to to the var sinceID, that way you won't re-reply to tweets you've already replied to.
 
+Check the logs to see if any of your tweets failed.
 
 
 
 
 
 
+
+#BASED ON:
 
 #ExampleBot
 
