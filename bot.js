@@ -90,10 +90,18 @@ var replyToMentions = function(){
 
 // Once a minute from 9am to 6pm EST. Giving an extra minute to make sure we sleep for 6 hours
 // 0-58 9-23,0-3 * * * would be EST, but UTC is below b/c that's what heroku runs off
-var j = schedule.scheduleJob('0-58 14-23,0-8 * * *', function() {
+// var j = schedule.scheduleJob('0-58 14-23,0-8 * * *', function() {
+// 	checkThrottled(function(requestsRemaining) {
+// 		if (requestsRemaining.mentions > 1) {
+// 			getMentions();
+// 		}
+// 	})
+// });
+
+setInterval(function() {
 	checkThrottled(function(requestsRemaining) {
 		if (requestsRemaining.mentions > 1) {
 			getMentions();
 		}
 	})
-});
+}, 60000);
