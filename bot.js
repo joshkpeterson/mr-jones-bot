@@ -4,6 +4,8 @@ var T = require('twit');
 // We need to include our configuration file
 var T = new T(require('./config.js'));
 
+var schedule = require('node-schedule');
+
 var rateLimitCheckCounter = 0,
 		sinceID = 689636929256714240, // from my test account
 		who = '\\bwho\\b';
@@ -77,9 +79,18 @@ var replyToMentions = function(){
   }
 };
 
-
 checkThrottled(function(requestsRemaining) {
 	if (requestsRemaining.mentions > 1) {
 		getMentions();
 	}
 })
+
+// Once a minute from 9am to 6pm EST. Giving an extra minute to make sure we sleep for 6 hours
+// 0-58 9-23,0-3 * * * would be EST, but UTC is below b/c that's what heroku runs off
+// var j = schedule.scheduleJob('0-58 14-23,0-8 * * *', function() {
+// 	checkThrottled(function(requestsRemaining) {
+// 		if (requestsRemaining.mentions > 1) {
+// 			getMentions();
+// 		}
+// 	})
+// });
