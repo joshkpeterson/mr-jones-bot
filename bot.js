@@ -23,7 +23,7 @@ var checkThrottled = function (callback) {
 }
 
 var getMentions = function() {  
-  T.get('statuses/mentions_timeline', { count: 10, include_rts: 1, since_id: sinceID }, function(err, data, response) {
+  T.get('statuses/mentions_timeline', { count: 200, include_rts: 1, since_id: sinceID }, function(err, data, response) {
     if (data.length) {
       for (var i = 0; i < data.length; i++) {
 
@@ -76,6 +76,7 @@ var replyToMentions = function(){
       	console.log(err + ' on tweet id: ' + currentMention.id);
       } else {
       	console.log('tweeted at ' + currentMention.user + ' / tweet id: ' + currentMention.id);
+      	sinceID = currentMention.id;
       }
     })
   }
