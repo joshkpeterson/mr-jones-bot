@@ -4,6 +4,7 @@ var schedule = require('node-schedule');
 
 var rateLimitCheckCounter = 0,
 		sinceID = 689636929256714240, // from my test account
+		mikeJonesCellNumber = '@28133og8004',
 		who = '\\bwho\\b',
 		latestMentions = [],
 		idStrings = {};
@@ -28,15 +29,21 @@ var getMentions = function() {
 
         var currentTweet = data[i];
         if (!idStrings[currentTweet.id_str] ) {
-        	console.log(currentTweet.text);
+        	// console.log(currentTweet.text);
 
         	if ((new RegExp(who, 'i')).exec(currentTweet.text)) {
 	        	idStrings[currentTweet.id_str] = true;
 
 	          var tweetObj = {};
 	          tweetObj.user = currentTweet.user.screen_name;
-	          tweetObj.text = currentTweet.text;
 	          tweetObj.id = currentTweet.id;
+
+	          var str = currentTweet.text;
+	          var pattern = /\B@[a-z0-9_-]+/gi;
+						var matches = str.match(pattern);
+						var index = matches.indexOf(mikeJonesCellNumber);
+						tweetObj.otherMentions = matches.splice(index, 1);
+
 	          latestMentions.push(tweetObj);
 	        }
         }
@@ -54,10 +61,14 @@ var getMentions = function() {
 //with a simple message. We want to invoke it at the end of our getMentions function, so it is called
 //when we have all our new mentions. 
 var replyToMentions = function(){  
-  for(var i = 0; i < latestMentions.length; i++){
+  for(var i = 0; i < latestMentions.length; i++) {
     var currentMention = latestMentions[i];
     //responseTweet is the string we will send to Twitter to tweet for us
-    var responseTweet = 'MIKE JONES ' + '                      @' + currentMention.user;
+    var responseTweet = 'MIKE JONES ' + '  @' + currentMention.user;
+
+    for(var i = 0; i < currentMention.otherMentions.length; i++) {
+    	responseTweet += ' ' + currentMention.otherMentions[i];
+    }
 
     //Twit will now post this responseTweet to Twitter. This function takes a string and a callback
     T.post('statuses/update', { status: responseTweet, in_reply_to_status_id: currentMention.id }, function(err, data, response) {
