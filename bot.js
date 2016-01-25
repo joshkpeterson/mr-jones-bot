@@ -4,7 +4,7 @@ var schedule = require('node-schedule');
 
 var rateLimitCheckCounter = 0,
 		sinceID = 689636929256714240, // from my test account
-		mikeJonesCellNumber = '@28133og8004',
+		mikeJonesCellNumber = '@28133oh8004',
 		who = '\\bwho\\b',
 		latestMentions = [],
 		idStrings = {};
@@ -15,8 +15,6 @@ var checkThrottled = function (callback) {
 
 	T.get('application/rate_limit_status', {resources: 'statuses'}, function (err, data, response) {
 		responseData.mentions = data.resources.statuses['/statuses/mentions_timeline'].remaining;
-		// console.log(responseData);
-
 		rateLimitCheckCounter += 1;
 		return callback(responseData);
 	})
@@ -29,7 +27,6 @@ var getMentions = function() {
 
         var currentTweet = data[i];
         if (!idStrings[currentTweet.id_str] ) {
-        	// console.log(currentTweet.text);
 
         	if ((new RegExp(who, 'i')).exec(currentTweet.text)) {
 	        	idStrings[currentTweet.id_str] = true;
@@ -41,15 +38,20 @@ var getMentions = function() {
 	          var str = currentTweet.text;
 	          var pattern = /\B@[a-z0-9_-]+/gi;
 						var matches = str.match(pattern);
-						var index = matches.indexOf(mikeJonesCellNumber);
-						tweetObj.otherMentions = matches.splice(index, 1);
+						for (var j = 0; j < matches.length; j++) {
+							matches[j] = matches[j].replace(mikeJonesCellNumber, '');
+						}
+	          var str = currentTweet.text;
+						tweetObj.otherMentions = matches;
 
 	          latestMentions.push(tweetObj);
 	        }
         }
       }
       //response to new mentions
-      replyToMentions();
+      if (latestMentions.length) {
+      	replyToMentions();
+      }
     }
     else {
       console.log(data);
@@ -64,22 +66,27 @@ var replyToMentions = function(){
   for(var i = 0; i < latestMentions.length; i++) {
     var currentMention = latestMentions[i];
     //responseTweet is the string we will send to Twitter to tweet for us
-    var responseTweet = 'MIKE JONES ' + '  @' + currentMention.user;
+    var responseTweet = 'MIKE JONES' + '  @' + currentMention.user;
 
-    for(var i = 0; i < currentMention.otherMentions.length; i++) {
-    	responseTweet += ' ' + currentMention.otherMentions[i];
+    for(var j = 0; j < currentMention.otherMentions.length; j++) {
+    	responseTweet += ' ' + currentMention.otherMentions[j];
     }
 
-    //Twit will now post this responseTweet to Twitter. This function takes a string and a callback
+    // Twit will now post this responseTweet to Twitter. This function takes a string and a callback
     T.post('statuses/update', { status: responseTweet, in_reply_to_status_id: currentMention.id }, function(err, data, response) {
+      // data = JSON.parse(data);
       if (err) {
-      	console.log(err + ' on tweet id: ' + currentMention.id);
+      	console.log(err + ' on tweet id: ' + data.id);
       } else {
-      	console.log('tweeted at ' + currentMention.user + ' / tweet id: ' + currentMention.id);
+      	console.log('tweeted: ' + data.text);
+      	// Don't know if this is the latest mention actually, but even if it's just the 200th max, that's fine
       	sinceID = currentMention.id;
       }
     })
+		
   }
+
+  latestMentions = {};
 };
 
 // For dev - if you want to run manually
@@ -92,17 +99,10 @@ var replyToMentions = function(){
 // Once a minute from 9am to 6pm EST. Giving an extra minute to make sure we sleep for 6 hours
 // 0-58 9-23,0-3 * * * would be EST, but UTC is below b/c that's what heroku runs off
 // var j = schedule.scheduleJob('0-58 14-23,0-8 * * *', function() {
-// 	checkThrottled(function(requestsRemaining) {
-// 		if (requestsRemaining.mentions > 1) {
-// 			getMentions();
-// 		}
-// 	})
-// });
-
-setInterval(function() {
+var j = schedule.scheduleJob('*/5 * * * * *', function() {
 	checkThrottled(function(requestsRemaining) {
 		if (requestsRemaining.mentions > 1) {
 			getMentions();
 		}
 	})
-}, 60000);
+});
